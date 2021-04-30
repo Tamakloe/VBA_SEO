@@ -1,0 +1,261 @@
+Sub getSEOinfo()
+
+'This macro can be used get the details of a  of URLs into an Excel spreadsheet.
+'It opens a URL in an IE window looks at the page and extracts the contents
+'Author: Gerry Tamakloe. Update 29-Sep-2015
+
+
+'Instructions:
+' Put this macro into your personal.xlmb or the spreadsheet(presss alt+11 then insert new module)
+'   You may need to add reverences:
+'   i.   Microsoft Office 14.0 Object Library
+'   ii.  Microsoft Internet Controls
+'   iii. Microsoft HTML Object Library
+' In row 1, column A, Paste your  of complete URLs with a heading
+' Note: If you want to view each open URL uncomment this line below 'MsgBox urlToOpen & " is open.", , "Check your browser"
+'       When you run the macro move the IE window to another monitor or will may hide the excel instructions.
+' Run the macro from the Developer tab, Macros..
+
+
+'Initialise variables
+Dim rowcount As Integer
+Dim urlToOpen As String
+Dim urlToCopy As String
+Dim title As String
+Dim objCollection As Object
+Dim list As String
+
+
+'Create SEOTag headings on row 1
+
+    Range("A1").Select
+    Selection.EntireRow.Insert
+    ActiveCell.FormulaR1C1 = "Website URL"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "Resolving URL"
+    
+    Range("C1").Select
+    ActiveCell.FormulaR1C1 = "Page Title"
+    Range("D1").Select
+    ActiveCell.FormulaR1C1 = "Title #Char"
+    Range("E1").Select
+    ActiveCell.FormulaR1C1 = "Meta Description"
+    Range("F1").Select
+    ActiveCell.FormulaR1C1 = "Desc #Char"
+    Range("G1").Select
+    ActiveCell.FormulaR1C1 = "Meta Keywords"
+    
+    Range("H1").Select
+    ActiveCell.FormulaR1C1 = "Header H1 Tag"
+    Range("I1").Select
+    ActiveCell.FormulaR1C1 = "Header H2 Tags"
+    Range("J1").Select
+    ActiveCell.FormulaR1C1 = "Header H3 Tags"
+    Range("K1").Select
+    ActiveCell.FormulaR1C1 = "Header H4 Tags"
+
+    
+'format row 1
+    
+    Range("A1:K1").Select
+    Selection.Style = "Accent2"
+    Selection.Font.Bold = True
+    Range("D1,F1").Select
+    Selection.Style = "Accent6"
+    Selection.Font.Bold = True
+    Range("A2").Select
+
+'Create InternetExplorer Object
+Set ie = CreateObject("InternetExplorer.Application")
+'Show browser
+ie.Visible = True
+
+'Set rowcount to 2nd line
+rowcount = 2
+'Continue until a blank cell is found in column A
+Do While ActiveSheet.Range("A" & rowcount) <> ""
+
+'Declare default value for object - avoids carry over of previous value
+title = "MISSING!"
+MetaDesc = "MISSING!"
+MetaKeywords = "MISSING!"
+h1 = "MISSING!"
+h2 = "MISSING!"
+h3 = "MISSING!"
+h4 = "MISSING!"
+Div = "MISSING!"
+list = ""
+
+
+'MsgBox "Please Wait - This may take a while." & vbCrLf & "I'll let you know when I am finished" & vbCrLf & "Click OK to Continue", , "Extracting Data"
+
+'Declare the value of the cell found in column A where row number = rowcount
+urlToOpen = ActiveSheet.Range("A" & rowcount).Value
+'Open the links in the same browser
+ie.Navigate2 urlToOpen
+'Perform your events here
+
+'Message popup box to say the url is open (uncomment below to display)
+'MsgBox urlToOpen & " is open.", , "Check your browser"
+Application.Wait (Now + TimeValue("00:00:05"))
+
+
+'Declare the object "urlToCopy" to be the current URL in the browser
+urlToCopy = ie.LocationURL
+'Declare that the value of the cell in next column, where row number = rowcount is the current URL in the browser
+ActiveSheet.Range("B" & rowcount) = urlToCopy
+
+'Declare a HTML Document
+Set doc = ie.Document
+ 
+'Declare the object "title"
+title = doc.title
+'Declare that the value of the cell in next column, where row number = rowcount is the current page title
+ActiveSheet.Range("C" & rowcount) = title
+
+ActiveSheet.Range("D" & rowcount) = "=IF(C" & rowcount & "=""MISSING!"",0,Len(C" & rowcount & "))"
+
+
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+'Declare the object "Meta Description"
+MetaDesc = doc.getElementsByTagName("meta").Item("Description").Content
+'Insert the contents in column/row where row number = rowcount
+ActiveSheet.Range("E" & rowcount) = MetaDesc
+
+ActiveSheet.Range("F" & rowcount) = "=IF(E" & rowcount & "=""MISSING!"",0,Len(E" & rowcount & "))"
+
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+'Declare the object "Meta Keywords"
+MetaKeywords = doc.getElementsByTagName("meta").Item("keywords").Content
+'Insert the contents in column/row where row number = rowcount
+ActiveSheet.Range("G" & rowcount) = MetaKeywords
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+'Declare the object "h1"
+h1 = doc.getElementsByTagName("h1")(0).innerText
+'Insert the contents in column/row where row number = rowcount
+ActiveSheet.Range("H" & rowcount) = h1
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+
+'******** Declare h2 Tags
+ 
+ 
+ Set objCollection = ie.Document.getElementsByTagName("h2")
+        i = 0
+        While i < objCollection.Length
+          list = list + objCollection(i).innerText & vbNewLine & vbNewLine
+            'Insert the contents in column/row where row number = rowcount
+            ActiveSheet.Range("I" & rowcount) = list
+         i = i + 1
+        Wend
+        list = ""
+
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+
+'******** Declare h3 Tags
+
+ Set objCollection = ie.Document.getElementsByTagName("h3")
+        i = 0
+        While i < objCollection.Length
+          list = list + objCollection(i).innerText & vbNewLine & vbNewLine
+            'Insert the contents in column/row where row number = rowcount
+            ActiveSheet.Range("J" & rowcount) = list
+         i = i + 1
+        Wend
+        list = ""
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+
+'******** Declare h4 Tags
+
+ Set objCollection = ie.Document.getElementsByTagName("h4")
+        i = 0
+        While i < objCollection.Length
+          list = list + objCollection(i).innerText & vbNewLine & vbNewLine
+            'Insert the contents in column/row where row number = rowcount
+            ActiveSheet.Range("K" & rowcount) = list
+         i = i + 1
+        Wend
+        list = ""
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+
+
+'Ensure macro does not stop due to a element being missing
+On Error GoTo Err_Clear
+
+
+Err_Clear:
+ If Err <> 0 Then
+ Err.Clear
+ Resume Next
+ End If
+
+
+'increment object "rowcount" so that next URL is selected on loop
+rowcount = rowcount + 1
+
+Loop
+
+'Close Browser
+ie.Quit
+
+
+'MsgBox "Please Wait - I am still working." & vbCrLf & "Formatting.....", , "Patience Is a Virtue"
+
+
+
+'Final Page Format
+    Cells.Select
+    With Selection
+        .HorizontalAlignment = xlGeneral
+        .VerticalAlignment = xlTop
+        .WrapText = True
+        .Orientation = 0
+        .AddIndent = False
+        .IndentLevel = 0
+        .ShrinkToFit = False
+        .ReadingOrder = xlContext
+        .MergeCells = False
+    End With
+    Columns("A:K").Select
+    Selection.ColumnWidth = 50
+    
+    Columns("D:D").Select
+    Selection.ColumnWidth = 15
+    Columns("F:F").Select
+    Selection.ColumnWidth = 15
+    Rows("1:1").Select
+    Rows("1:1").EntireRow.AutoFit
+'    Rows("2:34").Select
+'    Rows("2:34").EntireRow.AutoFit
+'   Selection.RowHeight = 300
+    Rows("2:" & lngLastRow).RowsHeight = 300
+    Range("a1").Select
+    Range("a:k").AutoFilter
+    Rows("2:2").Select
+    ActiveWindow.FreezePanes = True
+
+MsgBox "OK I'm Done" & vbCrLf & "That was a lot of work.....", , "Process Finished"
+
+End Sub
+
+
+
+
